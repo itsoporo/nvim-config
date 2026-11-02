@@ -1,3 +1,5 @@
+vim.opt.clipboard = "unnamedplus"
+
 vim.opt.termguicolors = true
 
 -- installed early so it's available before colorscheme() runs below
@@ -8,6 +10,7 @@ vim.pack.add({ 'nvim-telescope/telescope.nvim' })
 vim.opt.background = "dark" -- set to "light" for the light variant
 vim.cmd.colorscheme("melange")
 
+vim.pack.add({ 'https://github.com/glacambre/firenvim' })
 
 local function set_transparent() -- set UI component to transparent
 	local groups = {
@@ -459,6 +462,31 @@ require("mini.trailspace").setup({})
 require("mini.bufremove").setup({})
 require("mini.notify").setup({})
 require("mini.icons").setup({})
+
+do -- for toggling the notifications at the top right
+
+  local notify_enabled = true
+  local original_notify = vim.notify
+
+  _G.toggle_notifications = function()
+    if notify_enabled then
+      -- Route alerts to the bottom command line instead of the top right
+      vim.notify = print
+      notify_enabled = false
+      print("Notifications muted (printed to cmdline)")
+    else
+      -- Restore the floating top-right popups
+      vim.notify = original_notify
+      notify_enabled = true
+      vim.notify("Notifications enabled", vim.log.levels.INFO)
+    end
+end
+
+vim.lsp.handlers["$/progress"] = function() end
+
+-- Bind the toggle to a shortcut (e.g., <leader>un for "Toggle Notifications")
+vim.keymap.set("n", "<leader>un", _G.toggle_notifications, { desc = "Toggle floating notifications" })
+end
 
 -- statusline: theme "auto" pulls colors straight from melange's highlight
 -- groups (no dedicated melange lualine theme exists, so this generates one)
